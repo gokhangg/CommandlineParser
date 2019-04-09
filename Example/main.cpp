@@ -7,7 +7,6 @@ Contact: ghngunay@gmail.com
 
 using namespace std;
 
-
 int main(int argc,char * argv[])
 {
 	cparser parser(argc, argv);

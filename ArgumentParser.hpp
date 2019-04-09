@@ -7,61 +7,44 @@ Contact: ghngunay@gmail.com
 #ifndef parser_hpp
 #define parser_hpp
 
-#include <cstring>
 #include <string>
 
 
 using namespace std;
 
-string get_cstr_arg(string str, const char * arg);
-
 class cparser {
+public:
+	cparser(const int argc, char ** const argv);
+	cparser() = default;
+	~cparser() = default;
+	cparser& operator=(const cparser&) = delete;
+	cparser(const cparser&) = delete;
+	cparser(cparser&&) = default;
+	cparser& operator=(cparser&&) = default;
+	void input(const int argc, char ** const arg);
+	void save_keys(const char* const in_arg, const char* const key);
+	string operator[](const char* const key);
+	unsigned int get_saved_key_num();
+	
 private:
+	string get_cstr_arg(const string& str, const char * const arg);
 	string input_args;
 	string keys;
 	unsigned int saved_key_num;
-public:
-
-	cparser(int argc,char ** argv);
-	cparser();
-	~cparser();
-	void input(int argc, char ** arg);
-	void save_keys(const char* in_arg, const char* key);
-	char* return_val(char* arg);
-	string operator[](const char* key);
-	unsigned int get_saved_key_num(void);
 };
 
-/*
-* @brief Constructor.
-*/
-cparser::cparser(int argc, char ** argv)
+cparser::cparser(const int argc, char ** const argv)
 {
 	input(argc, argv);
 	saved_key_num = 0;
 }
 
 /*
-* @brief Default constructor.
+* @brief Imports input arguments and count to the argument pool.
 */
-cparser::cparser()
+void cparser::input(const int argc, char ** const arg)
 {
-}
-
-/*
-* @brief Detructor.
-*/
-cparser::~cparser()
-{
-	
-}
-
-/*
-* @brief Importing input arguments and count to the argument pool.
-*/
-void cparser::input(int argc,char ** arg)
-{
-	for (int cnt=0;cnt<argc;cnt++)
+	for (auto cnt = 0u; cnt < argc; cnt++)
 	{
 		input_args.append(" ");
 		input_args.append(arg[cnt]);
@@ -69,9 +52,9 @@ void cparser::input(int argc,char ** arg)
 }
 
 /*
-* @brief Save a key and corresponding possible input argument.
+* @brief Saves a key and corresponding possible input argument.
 */
-void cparser::save_keys(const char* key, const  char* in_arg)
+void cparser::save_keys(const char* const key, const char* const in_arg)
 {
 	if ((key == NULL) || (in_arg == NULL))//If one of the arguments are invalid return without any action.
 		return;
@@ -83,31 +66,31 @@ void cparser::save_keys(const char* key, const  char* in_arg)
 }
 
 /*
-* @brief Retrieving input argument corresponding to the given key.
+* @brief Retrieves input argument corresponding to the given key.
 */
-string cparser::operator[](const char* key)
+string cparser::operator[](const char* const key)
 {
 	return get_cstr_arg(input_args, get_cstr_arg(keys, key).c_str());
 }
 
 /*
-* @brief Getting number of the saved keys.
+* @brief Gets number of the saved keys.
 */
-unsigned int cparser::get_saved_key_num(void)
+unsigned int cparser::get_saved_key_num()
 {
 	return saved_key_num;
 }
 
 /**
-* @brief Retrieving input argument corresponding to the given key.
+* @brief Retrieves input argument corresponding to the given key.
 */
-string get_cstr_arg(string str, const char * arg)
+string cparser::get_cstr_arg(const string& str, const char * const arg)
 {
-	size_t pos=str.find(arg);
-	if (pos==-1)
+	size_t pos = str.find(arg);
+	if (pos == -1)
 		return static_cast<string>("");//if not found return null
-	pos=str.find(" ", pos+1);
-	return str.substr(pos+1,str.find(" ", pos+1)-pos-1);
+	pos=str.find(" ", pos + 1);
+	return str.substr(pos + 1,str.find(" ", pos + 1) - pos - 1);
 }
 
 
