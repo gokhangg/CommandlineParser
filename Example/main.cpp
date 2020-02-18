@@ -18,7 +18,7 @@ void prnt(T& in, const std::string first_message)
 
 int main(int argc,char * argv[])
 {
-	cparser parser(argc, argv);
+	Cparser parser(argc, argv);
 	parser.save_key("in_file", "-in");
 	parser.save_key("out_file", "-out");
 	parser.save_key("param1", "-p1");

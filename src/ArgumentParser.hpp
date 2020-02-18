@@ -79,26 +79,26 @@ private:
 
 
 
-class cparser {
+class Cparser {
 	using ArgMapType = std::map<std::string, std::vector<std::string>>;
 	using CorrespondanceMapType = std::map<std::string, std::string>;
 public:
-	cparser() = default;
-	explicit cparser(const int argc, char ** const argv)
-		: cparser()
+	Cparser() = default;
+	explicit Cparser(const int argc, char ** const argv)
+		: Cparser()
 	{
 		input(argc, argv);
 	}
 	
-	~cparser() = default;
-	cparser& operator=(const cparser&) = delete;
-	cparser(const cparser&) = delete;
-	cparser(cparser&&) = default;
-	cparser& operator=(cparser&&) = default;
+	~Cparser() = default;
+	Cparser& operator=(const Cparser&) = delete;
+	Cparser(const Cparser&) = delete;
+	Cparser(Cparser&&) = default;
+	Cparser& operator=(Cparser&&) = default;
 	void input(const int argc, char ** const arg);
 	void save_key(const std::string key, const std::string in_arg);
 	auto operator[](const std::string key) const noexcept -> ParserReturnType<std::string>;
-	unsigned int cparser::get_saved_key_num() const noexcept;
+	unsigned int Cparser::get_saved_key_num() const noexcept;
 	
 private:
 	auto find(const std::string key) const noexcept -> std::vector<std::string>;
@@ -109,7 +109,7 @@ private:
 /*
 * @brief Imports input arguments and add to the argument pool.
 */
-void cparser::input(const int argc, char ** const arg)
+void Cparser::input(const int argc, char ** const arg)
 {
 	constexpr char cmd_option_start = '-';
 	bool key_found_lock{ false };
@@ -141,7 +141,7 @@ void cparser::input(const int argc, char ** const arg)
 /*
 * @brief Saves a key and corresponding possible input argument.
 */
-void cparser::save_key(const std::string key, const const std::string in_arg)
+void Cparser::save_key(const std::string key, const const std::string in_arg)
 {
 	if (std::empty(key) || std::empty(in_arg))//If one of the arguments are invalid return without any action.
 		return;
@@ -151,7 +151,7 @@ void cparser::save_key(const std::string key, const const std::string in_arg)
 /*
 * @brief Retrieves translated input argument corresponding to the given key.
 */
-auto cparser::operator[](const std::string key) const noexcept-> ParserReturnType<std::string>
+auto Cparser::operator[](const std::string key) const noexcept-> ParserReturnType<std::string>
 {
 	return ParserReturnType<std::string>(find(key));
 }
@@ -159,7 +159,7 @@ auto cparser::operator[](const std::string key) const noexcept-> ParserReturnTyp
 /*
 * @brief Retrieves input argument corresponding to the given key.
 */
-auto cparser::find(const std::string key) const noexcept -> std::vector<std::string>
+auto Cparser::find(const std::string key) const noexcept -> std::vector<std::string>
 {
 	auto sub_find = [&]()
 	{
@@ -180,7 +180,7 @@ auto cparser::find(const std::string key) const noexcept -> std::vector<std::str
 /*
 * @brief Gets number of the saved keys.
 */
-unsigned int cparser::get_saved_key_num() const noexcept
+unsigned int Cparser::get_saved_key_num() const noexcept
 {
 	return std::size(m_correspondance_map);
 }
