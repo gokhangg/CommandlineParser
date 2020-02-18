@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.0)
 project(PARSER_TEST)
 
-set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/gtestExternal)
+include(ExternalProject)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BUILD_SHARED ON CACHE BOOL "" FORCE)
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/gtestExternal)
 include(ExternalProject)
 ExternalProject_Add(googletest
     GIT_REPOSITORY https://github.com/google/googletest
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
 )
+
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include ${CMAKE_SOURCE_DIR}/src)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)

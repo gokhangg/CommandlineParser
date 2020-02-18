@@ -3,7 +3,6 @@ Written by Gokhan Gunay
 Contact: ghngunay@gmail.com
 */
 
-
 #ifndef parser_hpp
 #define parser_hpp
 
@@ -11,29 +10,6 @@ Contact: ghngunay@gmail.com
 #include <vector>
 #include <utility>
 #include <map>
-
-/*
-* @brief Used to translate input string vector to output typed vector.
-*/
-template<typename Out_T, typename In_T, typename Funct_T>
-std::vector<Out_T> translate(const In_T& in, Funct_T& funct)
-{
-	std::vector<Out_T> ret_val(std::size(in));
-	auto it_out = std::begin(ret_val);
-	try
-	{
-		for (auto it = std::begin(in); it != std::end(in);)
-		{
-			*it_out++ = funct(*it++);
-		}
-	}
-	/*In case of any type of exception just return with empty vector.*/
-	catch(...)
-	{
-		ret_val = std::vector<Out_T>{};
-	}
-	return ret_val;
-}
 
 /*Class to manipulate output of found parameters.*/
 template<typename In_T>
@@ -43,28 +19,33 @@ public:
 	ParserReturnType() = delete;
 	explicit ParserReturnType(const std::vector<In_T>& return_val)
 		: m_called{ !std::empty(return_val) }
-		, m_return_val{ return_val }
+		, m_return_val{ std::empty(return_val) ? return_val : std::vector<In_T>(std::next(std::begin(return_val), 1), std::end(return_val)) }
 	{
 	}
 	/*Return true if the relevant parameter is in the commandline argumens.*/
-	bool is_called() const noexcept
+	auto is_called() const noexcept
 	{
 		return m_called;
 	}
 
-	std::vector<double> get_as_double() const 
+	auto size() const noexcept
 	{
-		return translate<double>(m_return_val, [](const std::string& str) {return std::stod(str);});
+		return m_sz;
 	}
 
-	std::vector<float> get_as_float() const 
+	std::vector<double> get_as_double() const
 	{
-		return translate<float>(m_return_val, [](const std::string& str) {return std::stof(str);});
+		return translate<double>([](const std::string& str) {return std::stod(str); });
+	}
+
+	std::vector<float> get_as_float() const
+	{
+		return translate<float>([](const std::string& str) {return std::stof(str); });
 	}
 
 	std::vector<int> get_as_integer() const
 	{
-		return translate<int>(m_return_val, [](const std::string& str) {return std::stoi(str);});
+		return translate<int>([](const std::string& str) {return std::stoi(str); });
 	}
 
 	std::vector<std::string> get_as_string() const noexcept
@@ -73,11 +54,33 @@ public:
 	}
 
 private:
+	/*
+	* @brief Used to translate input string vector to output typed vector.
+	*/
+	template<typename Out_T, typename Funct_T>
+	std::vector<Out_T> translate(Funct_T&& funct) const
+	{
+		std::vector<Out_T> ret_val(std::size(m_return_val));
+		auto it_out = std::begin(ret_val);
+		try
+		{
+			for (auto it = std::begin(m_return_val); it != std::end(m_return_val);)
+			{
+				*it_out++ = funct(*it++);
+			}
+		}
+		/*In case of any type of exception just return with empty vector.*/
+		catch (...)
+		{
+			ret_val = std::vector<Out_T>{};
+		}
+		return ret_val;
+	}
+
 	bool m_called;
+	std::size_t m_sz;
 	std::vector<In_T> m_return_val;
 };
-
-
 
 class Cparser {
 	using ArgMapType = std::map<std::string, std::vector<std::string>>;
@@ -85,51 +88,61 @@ class Cparser {
 public:
 	Cparser() = default;
 	explicit Cparser(const int argc, char ** const argv)
-		: Cparser()
 	{
-		input(argc, argv);
+		std::vector<std::string> v_string(argc);
+		for (auto ind = 0; ind < argc; ++ind)
+		{
+			v_string[ind] = argv[ind];
+		}
+		input(v_string);
 	}
-	
+
+	explicit Cparser(const std::vector<std::string> v_string)
+	{
+		input(v_string);
+	}
+
 	~Cparser() = default;
 	Cparser& operator=(const Cparser&) = delete;
 	Cparser(const Cparser&) = delete;
 	Cparser(Cparser&&) = default;
 	Cparser& operator=(Cparser&&) = default;
-	void input(const int argc, char ** const arg);
+	void input(const std::vector<std::string> argv);
 	void save_key(const std::string key, const std::string in_arg);
-	auto operator[](const std::string key) const noexcept -> ParserReturnType<std::string>;
-	unsigned int Cparser::get_saved_key_num() const noexcept;
-	
+	auto operator[](const std::string key) const noexcept->ParserReturnType<std::string>;
+	unsigned int get_saved_key_num() const noexcept;
+
 private:
-	auto find(const std::string key) const noexcept -> std::vector<std::string>;
+	auto find(const std::string& key) const noexcept->std::vector<std::string>;
 	ArgMapType m_arg_map;
 	CorrespondanceMapType m_correspondance_map;
-};	
+};
 
 /*
 * @brief Imports input arguments and add to the argument pool.
 */
-void Cparser::input(const int argc, char ** const arg)
+void Cparser::input(const std::vector<std::string> argv)
 {
+	const int argc = std::size(argv);
 	constexpr char cmd_option_start = '-';
 	bool key_found_lock{ false };
 	std::string key;
 	std::vector<std::string> vals;
 	for (auto ind = 0; ind < argc; ++ind)
 	{
-		if (arg[ind][0] == cmd_option_start)
+		if (argv[ind][0] == cmd_option_start)
 		{
 			if (key_found_lock)
 			{
 				m_arg_map.insert(std::make_pair(key, vals));
 			}
-			key = std::string{ arg[ind] };
+			key = std::string{ argv[ind] };
 			vals = { std::string("") };
 			key_found_lock = true;
 		}
 		else if (key_found_lock)
 		{
-			vals.emplace_back(std::string(arg[ind]));
+			vals.emplace_back(std::string(argv[ind]));
 		}
 	}
 	if (key_found_lock)
@@ -141,7 +154,7 @@ void Cparser::input(const int argc, char ** const arg)
 /*
 * @brief Saves a key and corresponding possible input argument.
 */
-void Cparser::save_key(const std::string key, const const std::string in_arg)
+void Cparser::save_key(const std::string key, const std::string in_arg)
 {
 	if (std::empty(key) || std::empty(in_arg))//If one of the arguments are invalid return without any action.
 		return;
@@ -159,7 +172,7 @@ auto Cparser::operator[](const std::string key) const noexcept-> ParserReturnTyp
 /*
 * @brief Retrieves input argument corresponding to the given key.
 */
-auto Cparser::find(const std::string key) const noexcept -> std::vector<std::string>
+auto Cparser::find(const std::string& key) const noexcept -> std::vector<std::string>
 {
 	auto sub_find = [&]()
 	{
@@ -168,9 +181,9 @@ auto Cparser::find(const std::string key) const noexcept -> std::vector<std::str
 		{
 			return std::end(m_arg_map);
 		}
-		return m_arg_map.find(m_correspondance_map.find(key)->second);
+		return m_arg_map.find(ret_val->second);
 	};
-	
+
 	auto ret_val = sub_find();
 	if (ret_val == std::end(m_arg_map))
 		return std::vector<std::string>();
@@ -184,10 +197,5 @@ unsigned int Cparser::get_saved_key_num() const noexcept
 {
 	return std::size(m_correspondance_map);
 }
-
-
-
-
-
 
 #endif
