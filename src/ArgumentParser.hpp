@@ -77,8 +77,6 @@ private:
 	std::vector<In_T> m_return_val;
 };
 
-
-
 class Cparser {
 	using ArgMapType = std::map<std::string, std::vector<std::string>>;
 	using CorrespondanceMapType = std::map<std::string, std::string>;

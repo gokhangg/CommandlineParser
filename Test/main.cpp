@@ -13,6 +13,7 @@ using namespace std;
 
 int main(int argc, char * argv[])
 {
+	Cparser parser;
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
