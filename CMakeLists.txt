@@ -1,15 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 project(COMMANDLINE_PARSER)
 
-set(TEST_DIR ${CMAKE_SOURCE_DIR}/Test)
-set(EXAMPLE_DIR ${CMAKE_SOURCE_DIR}/Example)
-set(PROJECT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Test)
+set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Example)
+set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/arg_parser)
 
 option(BUILD_TEST "If test is wanted.")
+option(BUILD_EXAMPLE "If the example is wanted.")
 
+add_library(argument_parser STATIC)
+target_include_directories(argument_parser PUBLIC ${PROJECT_SOURCE_DIR}/inc)
+target_sources(argument_parser PRIVATE ${PROJECT_SOURCE_DIR}/src/argument_parser.cpp)
 
 if (BUILD_TEST)
 	add_subdirectory(${TEST_DIR})
 endif()
-
-add_subdirectory(${EXAMPLE_DIR})
+if (BUILD_EXAMPLE)
+    add_subdirectory(${EXAMPLE_DIR})
+endif()

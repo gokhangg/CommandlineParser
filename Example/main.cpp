@@ -3,7 +3,7 @@ Written by Gokhan Gunay
 Contact: ghngunay@gmail.com
 */
 #include <iostream>
-#include "ArgumentParser.hpp"
+#include "argument_parser.hpp"
 
 template<typename T>
 void prnt(T& in, const std::string first_message)
