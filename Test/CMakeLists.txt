@@ -6,7 +6,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(BUILD_SHARED ON CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
-set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/gtestExternal)
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/gtestExternal)
 include(ExternalProject)
 ExternalProject_Add(googletest
     GIT_REPOSITORY https://github.com/google/googletest
@@ -25,5 +25,5 @@ endif()
 add_executable(PARSER_TEST main.cpp)
 
 add_dependencies(PARSER_TEST googletest)
-target_link_libraries(PARSER_TEST debug gtestd)
+target_link_libraries(PARSER_TEST debug gtestd argument_parser)
 target_link_libraries(PARSER_TEST optimized gtest)

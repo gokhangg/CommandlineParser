@@ -4,7 +4,7 @@ Contact: ghngunay@gmail.com
 */
 #include <iostream>  // I/O 
 #include "gtest/gtest.h"
-#include "ArgumentParser.hpp"
+#include "argument_parser.hpp"
 #include <string>
 #include <vector>
 
