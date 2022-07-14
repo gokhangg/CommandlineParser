@@ -39,7 +39,11 @@ std::vector<float> get_as_float() const {
 }
 
 std::vector<int> get_as_integer() const {
-    return translate<int>([](const std::string& str) {return std::stoi(str); });
+    return translate<int>([](const std::string& str) {return std::stoul(str); });
+}
+
+std::vector<uint64_t> get_as_uint64() const {
+    return translate<uint64_t>([](const std::string& str) {return std::stoi(str); });
 }
 
 std::vector<std::string> get_as_string() const noexcept {
@@ -73,6 +77,7 @@ std::vector<Out_T> translate(Funct_T&& funct) const {
 class Cparser {
     using ArgMapType = std::map<std::string, std::vector<std::string>>;
     using CorrespondanceMapType = std::map<std::string, std::string>;
+    using HelpMapType = std::map<std::string, std::string>;
  public:
     Cparser() = default;
     explicit Cparser(const int argc, char ** const argv);
@@ -83,12 +88,14 @@ class Cparser {
     Cparser(Cparser&&) = default;
     Cparser& operator=(Cparser&&) = default;
     void input(const std::vector<std::string> argv);
-    void save_key(const std::string key, const std::string in_arg);
+    void save_key(const std::string key, const std::string in_arg, const std::string help = "");
     auto operator[](const std::string key) const noexcept->ParserReturnType<std::string>;
     unsigned int get_saved_key_num() const noexcept;
-
+    void parse();
+    void print_help();
  private:
     auto find(const std::string& key) const noexcept->std::vector<std::string>;
-    ArgMapType m_arg_map;
-    CorrespondanceMapType m_correspondance_map;
+    ArgMapType argMap_;
+    CorrespondanceMapType correspondanceMap_;
+    HelpMapType helpMap_;
 };

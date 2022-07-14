@@ -5,9 +5,10 @@ Contact: ghngunay@gmail.com
 
 #include "argument_parser.hpp"
 
+#include <iostream>
 
 Cparser::Cparser(const int argc, char ** const argv) {
-    std::vector<std::string> v_string(argc);
+    std::vector<std::string> v_string(argc + 1);
     for (auto ind = 0; ind < argc; ++ind) {
         v_string[ind] = argv[ind];
     }
@@ -34,31 +35,33 @@ void Cparser::input(const std::vector<std::string> argv)
 		{
 			if (key_found_lock)
 			{
-				m_arg_map.insert(std::make_pair(key, vals));
+				argMap_.insert(std::make_pair(key, vals));
 			}
 			key = std::string{ argv[ind] };
-			vals = { std::string("") };
+			vals = { "" };
 			key_found_lock = true;
 		}
 		else if (key_found_lock)
 		{
-			vals.emplace_back(std::string(argv[ind]));
+			if (argv[ind] != "")
+			vals.emplace_back(argv[ind]);
 		}
 	}
 	if (key_found_lock)
 	{
-		m_arg_map.insert(std::make_pair(key, vals));
+		argMap_.insert(std::make_pair(key, vals));
 	}
 }
 
 /*
 * @brief Saves a key and corresponding possible input argument.
 */
-void Cparser::save_key(const std::string key, const std::string in_arg)
+void Cparser::save_key(const std::string key, const std::string in_arg, const std::string help)
 {
 	if (std::empty(key) || std::empty(in_arg))//If one of the arguments are invalid return without any action.
 		return;
-	m_correspondance_map.insert(std::make_pair(key, in_arg));
+	correspondanceMap_.insert(std::make_pair(key, in_arg));
+    helpMap_.insert(std::make_pair(correspondanceMap_[key], help));
 }
 
 /*
@@ -76,16 +79,16 @@ auto Cparser::find(const std::string& key) const noexcept -> std::vector<std::st
 {
 	auto sub_find = [&]()
 	{
-		CorrespondanceMapType::const_iterator ret_val = m_correspondance_map.find(key);
-		if (ret_val == std::end(m_correspondance_map))
+		CorrespondanceMapType::const_iterator ret_val = correspondanceMap_.find(key);
+		if (ret_val == std::end(correspondanceMap_))
 		{
-			return std::end(m_arg_map);
+			return std::end(argMap_);
 		}
-		return m_arg_map.find(ret_val->second);
+		return argMap_.find(ret_val->second);
 	};
 
 	auto ret_val = sub_find();
-	if (ret_val == std::end(m_arg_map))
+	if (ret_val == std::end(argMap_))
 		return std::vector<std::string>();
 	return ret_val->second;
 }
@@ -95,5 +98,21 @@ auto Cparser::find(const std::string& key) const noexcept -> std::vector<std::st
 */
 unsigned int Cparser::get_saved_key_num() const noexcept
 {
-	return std::size(m_correspondance_map);
+	return std::size(correspondanceMap_);
+}
+
+/*
+* @brief Parses all arguments.
+*/
+void Cparser::parse() {
+    if (std::size(argMap_) == 0 || argMap_.count("--help") > 0 || argMap_.count("-h")) {
+        print_help();
+    }
+}
+
+void Cparser::print_help(){
+    std::cout << "Help menu !!" << std::endl;
+    for (auto& it : helpMap_) {
+        std::cout << std::endl << it.first << " : " << it.second << std::endl;
+    }
 }
