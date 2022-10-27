@@ -6,7 +6,7 @@ Contact: ghngunay@gmail.com
 #include "argument_parser.hpp"
 
 template<typename T>
-void prnt(T& in, const std::string first_message)
+void prnt(T&& in, const std::string first_message)
 {
 	std::cout << first_message;
 	for (auto& item : in)
