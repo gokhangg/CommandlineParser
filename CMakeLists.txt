@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(COMMANDLINE_PARSER)
 
-set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Test)
-set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Example)
+set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example)
 set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/arg_parser)
 
 option(BUILD_TEST "If test is wanted.")

@@ -1,7 +1,10 @@
-/*
-Written by Gokhan Gunay
-Contact: ghngunay@gmail.com
-*/
+/*********************
+* Copyright [2018] Written by Gokhan Gunay
+* Feel free to modify, distribute and whatever you want to do.
+* The author cannot be held responsible for the failure/damage
+* any user sustains using this library.
+* Contact: ghngunay@gmail.com
+**********************/
 
 #pragma once
 
@@ -18,9 +21,9 @@ ParserReturnType() = delete;
 explicit ParserReturnType(const std::vector<In_T>& return_val)
     : m_called{ !std::empty(return_val) }
     , m_return_val{ std::empty(return_val) ? return_val : std::vector<In_T>(std::next(std::begin(return_val), 1)
-    , std::end(return_val)) }
-{
-}
+    , std::end(return_val)) } {
+    }
+
 /*Return true if the relevant parameter is in the commandline argumens.*/
 auto is_called() const noexcept {
     return m_called;
@@ -68,7 +71,7 @@ std::vector<Out_T> translate(Funct_T&& funct) const {
         ret_val = std::vector<Out_T>{};
     }
     return ret_val;
-}
+    }
 
     bool m_called;
     std::vector<In_T> m_return_val;
@@ -78,24 +81,109 @@ class Cparser {
     using ArgMapType = std::map<std::string, std::vector<std::string>>;
     using CorrespondanceMapType = std::map<std::string, std::string>;
     using HelpMapType = std::map<std::string, std::string>;
+
  public:
-    Cparser() = default;
+    /**
+     * @brief Construct a new Cparser object with executable arguments.
+     * 
+     * @param argc Argument count.
+     * @param argv Argument list.
+     */
     explicit Cparser(const int argc, char ** const argv);
+
+    /**
+     * @brief Construct a new Cparser object with argument vector.
+     * 
+     * @param v_string 
+     */
     explicit Cparser(const std::vector<std::string> v_string);
-    ~Cparser() = default;
+
+    /**
+     * @brief To remove copy assignment.
+     * 
+     * @return Cparser& 
+     */
     Cparser& operator=(const Cparser&) = delete;
+
+    /**
+     * @brief To remote copy construction.
+     * 
+     */
     Cparser(const Cparser&) = delete;
+
+    /**
+     * @brief To set move constructor.
+     * 
+     */
     Cparser(Cparser&&) = default;
+
+    /**
+     * @brief To set move assignement.
+     * 
+     * @return Cparser& 
+     */
     Cparser& operator=(Cparser&&) = default;
+
+    /**
+     * @brief Used to import input arguments and add to the argument pool.
+     * 
+     * @param argv Argument vector.
+     */
     void input(const std::vector<std::string> argv);
+
+    /**
+     * @brief Used to save a key and corresponding possible input argument.
+     * 
+     * @param key Key to save.
+     * @param in_arg Input argument to be used at CL.
+     * @param help Help to print if given.
+     */
     void save_key(const std::string key, const std::string in_arg, const std::string help = "");
+
+    /**
+     * @brief Used to seet epilog.
+     * 
+     * @param epilog Epilog.
+     */
+    void set_epilog(const std::string epilog);
+
+    /**
+     * @brief Used to fetch CL argument values.
+     * 
+     * @param key Key of the argument.
+     * @return ParserReturnType<std::string> Argument values as string.
+     */
     auto operator[](const std::string key) const noexcept->ParserReturnType<std::string>;
-    unsigned int get_saved_key_num() const noexcept;
+
+    /**
+     * @brief Used to get the saved key num object
+     * 
+     * @return unsigned int Key number.
+     */
+    size_t get_saved_key_num() const noexcept;
+
+    /**
+     * @brief To parse the arguments.
+     * 
+     */
     void parse();
+
+    /**
+     * @brief To print the help menu.
+     * 
+     */
     void print_help();
+
  private:
+    /**
+     * @brief Used to fetch CL argument values.
+     * 
+     * @param key Key of the argument.
+     * @return std::vector<std::string> Argument values as string.
+     */
     auto find(const std::string& key) const noexcept->std::vector<std::string>;
     ArgMapType argMap_;
     CorrespondanceMapType correspondanceMap_;
     HelpMapType helpMap_;
+    std::string epilog_;
 };
