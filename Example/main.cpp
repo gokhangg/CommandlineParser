@@ -23,6 +23,7 @@ int main(int argc, char * argv[])
     parser.save_key("out_file", "-out", "Output");
     parser.save_key("param1", "-p1", "Parameter 1");
     parser.save_key("param2", "-p2", "Parameter 2");
+    parser.save_key("param3", "-p3", "7.7", "Parameter 3");
 
     parser.set_epilog(
                     "Copyright [2018] Written by Gokhan Gunay\n"
@@ -37,5 +38,6 @@ int main(int argc, char * argv[])
     prnt(parser["param1"].get_as_float(), "-p1 arguments: ");
     prnt(parser["param1"].get_as_double(), "-p1 arguments: ");
     prnt(parser["param2"].get_as_integer(), "-p2 arguments: ");
+    prnt(parser["param3"].get_as_float(), "-p3 arguments (from default val): ");
     return 0;
 }

@@ -18,10 +18,9 @@ template<typename In_T>
 class ParserReturnType {
  public:
 ParserReturnType() = delete;
-explicit ParserReturnType(const std::vector<In_T>& return_val)
-    : m_called{ !std::empty(return_val) }
-    , m_return_val{ std::empty(return_val) ? return_val : std::vector<In_T>(std::next(std::begin(return_val), 1)
-    , std::end(return_val)) } {
+explicit ParserReturnType(const bool called, const std::vector<In_T>& return_val)
+    : m_called{ called }
+    , m_return_val{ return_val } {
     }
 
 /*Return true if the relevant parameter is in the commandline argumens.*/
@@ -80,7 +79,7 @@ std::vector<Out_T> translate(Funct_T&& funct) const {
 class Cparser {
     using ArgMapType = std::map<std::string, std::vector<std::string>>;
     using CorrespondanceMapType = std::map<std::string, std::string>;
-    using HelpMapType = std::map<std::string, std::string>;
+    using HelpMapType = std::map<std::string, std::pair<std::string, std::string>>;
 
  public:
     /**
@@ -96,7 +95,7 @@ class Cparser {
      * 
      * @param v_string 
      */
-    explicit Cparser(const std::vector<std::string> v_string);
+    explicit Cparser(const std::vector<std::string>& v_string);
 
     /**
      * @brief To remove copy assignment.
@@ -129,7 +128,15 @@ class Cparser {
      * 
      * @param argv Argument vector.
      */
-    void input(const std::vector<std::string> argv);
+    void input(const std::vector<std::string>& argv);
+
+    /**
+     * @brief Used to save a key and corresponding possible input argument.
+     *
+     * @param key Key to save.
+     * @param in_arg Input argument to be used at CL.
+     */
+    void save_key(const std::string key, const std::string in_arg);
 
     /**
      * @brief Used to save a key and corresponding possible input argument.
@@ -138,7 +145,19 @@ class Cparser {
      * @param in_arg Input argument to be used at CL.
      * @param help Help to print if given.
      */
-    void save_key(const std::string key, const std::string in_arg, const std::string help = "");
+    void save_key(const std::string key, const std::string in_arg, const std::string defVal);
+
+    /**
+     * @brief Used to save a key and corresponding possible input argument
+     * with a default value.
+     *
+     * @param key Key to save.
+     * @param in_arg Input argument to be used at CL.
+     * @param defVal Default value as string.
+     * @param help Help to print if given.
+     */
+    void save_key(const std::string key, const std::string in_arg, \
+        const std::string defVal, const std::string help);
 
     /**
      * @brief Used to seet epilog.
@@ -164,15 +183,15 @@ class Cparser {
 
     /**
      * @brief To parse the arguments.
-     * 
+     * @param usageExtra To be printed when usage section is filled.
      */
-    void parse();
+    void parse(const std::string usageExtra = "");
 
     /**
      * @brief To print the help menu.
-     * 
+     * @param usageExtra To be printed when usage section is filled.
      */
-    void print_help();
+    void print_help(const std::string usageExtra = "");
 
  private:
     /**
@@ -181,7 +200,9 @@ class Cparser {
      * @param key Key of the argument.
      * @return std::vector<std::string> Argument values as string.
      */
-    auto find(const std::string& key) const noexcept->std::vector<std::string>;
+    auto find(const std::string& key) const noexcept->std::pair<std::string, std::vector<std::string>>;
+
+    std::vector<std::string> argStringVect_;
     ArgMapType argMap_;
     CorrespondanceMapType correspondanceMap_;
     HelpMapType helpMap_;

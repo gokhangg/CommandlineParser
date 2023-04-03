@@ -9,48 +9,51 @@
 #include "argument_parser.hpp"
 
 #include <iostream>
+#include <algorithm>
 
-Cparser::Cparser(const int argc, char ** const argv) {
-    std::vector<std::string> v_string(argc + 1);
-    for (auto ind = 0; ind < argc; ++ind) {
-        v_string[ind] = argv[ind];
-    }
-    input(v_string);
-}
+Cparser::Cparser(const int argc, char** const argv)
+    : argStringVect_{ argv, argv + argc } {}
 
-Cparser::Cparser(const std::vector<std::string> v_string) {
-    input(v_string);
-}
+Cparser::Cparser(const std::vector<std::string>& v_string)
+    : argStringVect_{ v_string } {}
 
-void Cparser::input(const std::vector<std::string> argv) {
-    const auto argc = std::size(argv);
+
+void Cparser::input(const std::vector<std::string>& argv) {
     constexpr char cmd_option_start = '-';
-    bool key_found_lock{ false };
     std::string key;
     std::vector<std::string> vals;
-    for (auto ind = 0; ind < argc; ++ind) {
-        if (argv[ind][0] == cmd_option_start) {
-            if (key_found_lock) {
-                argMap_.insert(std::make_pair(key, vals));
+
+    for (const auto& it : argv) {
+        if (it[0] == cmd_option_start) {
+            if (!std::empty(vals) && it != "") {
+                argMap_.emplace(key, vals);
+                vals.clear();
             }
-            key = std::string{ argv[ind] };
-            vals = { "" };
-            key_found_lock = true;
-        } else if (key_found_lock) {
-            if (argv[ind] != "")
-            vals.emplace_back(argv[ind]);
+            key = it;
+        } else if (!std::empty(key) && it != "") {
+               vals.emplace_back(it);
         }
     }
-    if (key_found_lock) {
-        argMap_.insert(std::make_pair(key, vals));
+    if (!std::empty(vals)) {
+        argMap_.emplace(key, vals);
+        vals.clear();
     }
 }
 
-void Cparser::save_key(const std::string key, const std::string in_arg, const std::string help) {
+void Cparser::save_key(const std::string key, const std::string in_arg) {
+    save_key(key, in_arg, "", "");
+}
+
+void Cparser::save_key(const std::string key, const std::string in_arg, const std::string defVal) {
+    save_key(key, in_arg, defVal, "");
+}
+
+void Cparser::save_key(const std::string key, const std::string in_arg, \
+        const std::string defVal, const std::string help) {
     // If one of the arguments are invalid return without any action.
     if (std::empty(key) || std::empty(in_arg)) return;
-    correspondanceMap_.insert(std::make_pair(key, in_arg));
-    helpMap_.insert(std::make_pair(correspondanceMap_[key], help));
+    correspondanceMap_.emplace(key, in_arg);
+    helpMap_.emplace(key, std::make_pair(defVal, help));
 }
 
 void Cparser::set_epilog(std::string epilog) {
@@ -58,37 +61,65 @@ void Cparser::set_epilog(std::string epilog) {
 }
 
 auto Cparser::operator[](const std::string key) const noexcept-> ParserReturnType<std::string> {
-    return ParserReturnType<std::string>(find(key));
+    auto retval = find(key);
+    return ParserReturnType<std::string>(retval.first != "", retval.second);
 }
 
-auto Cparser::find(const std::string& key) const noexcept -> std::vector<std::string> {
+auto Cparser::find(const std::string& key) const noexcept -> std::pair<std::string, std::vector<std::string>> {
     auto sub_find = [&]() {
-        CorrespondanceMapType::const_iterator ret_val = correspondanceMap_.find(key);
+        const auto& ret_val = correspondanceMap_.find(key);
         if (ret_val == std::end(correspondanceMap_)) {
             return std::end(argMap_);
         }
         return argMap_.find(ret_val->second);
     };
 
-    auto ret_val = sub_find();
-    if (ret_val == std::end(argMap_)) return std::vector<std::string>();
-    return ret_val->second;
+    auto& ret_val = sub_find();
+    if (ret_val == std::end(argMap_)) return std::make_pair(std::string{}, std::vector<std::string>{});
+    return *ret_val;
 }
 
 size_t Cparser::get_saved_key_num() const noexcept {
     return std::size(correspondanceMap_);
 }
 
-void Cparser::parse() {
-    if (std::size(argMap_) == 0 || argMap_.count("--help") > 0 || argMap_.count("-h")) {
-        print_help();
+void Cparser::parse(const std::string usageExtra) {
+    if (std::size(argStringVect_) > 1) {
+        input(argStringVect_);
+        for (auto& [key, val] : helpMap_) {
+            auto& linkedKey = correspondanceMap_[key];
+            if (argMap_.count(linkedKey) == 0) {
+                auto vl = val.first != "" ? std::vector<std::string>{ val.first } : std::vector<std::string>{};
+                argMap_.emplace(linkedKey, vl);
+            }
+        }
+        if (argMap_.count("--help") > 0 || argMap_.count("-h")) {
+            print_help(usageExtra);
+        }
+    } else {
+        print_help(usageExtra);
     }
 }
 
-void Cparser::print_help() {
-    std::cout << "Help menu:" << std::endl;
+void Cparser::print_help(const std::string usageExtra) {
+    constexpr auto kSpaceOffset = 1;
+    std::string helpMenu = "-h/--help";
+    if (std::size(argStringVect_) <= 1)
+        std::cout << "Incorrect parameters." << std::endl;
+    std::cout << "Usage:" << std::endl;
+    if (std::size(usageExtra)) std::cout << usageExtra << std::endl;
+    std::cout << "Arguments:" << std::endl;
+    auto it = std::max_element(std::begin(helpMap_), std::end(helpMap_), \
+        [this](auto& val1, auto& val2) { return std::size(correspondanceMap_[val1.first]) < std::size(correspondanceMap_[val2.first]); });
+    uint64_t maxSpaceSize = std::size(it->first);
+    if (maxSpaceSize < std::size(helpMenu)) maxSpaceSize = std::size(helpMenu);
+    maxSpaceSize += kSpaceOffset;
+
+    std::cout << helpMenu << std::string(maxSpaceSize - std::size(helpMenu), ' ') \
+        << ": " << "Help menu:" << std::endl;
     for (auto& it : helpMap_) {
-        std::cout << std::endl << it.first << " : " << it.second << std::endl;
+        std::cout << correspondanceMap_[it.first] << std::string(maxSpaceSize - std::size(it.first), ' ') \
+                << ": " << it.second.second << std::endl;
     }
     std::cout << std::endl << epilog_ << std::endl;
 }
