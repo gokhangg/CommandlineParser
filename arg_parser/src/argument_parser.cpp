@@ -88,7 +88,7 @@ void Cparser::parse(const std::string usageExtra) {
         input(argStringVect_);
         for (auto& [key, val] : helpMap_) {
             auto& linkedKey = correspondanceMap_[key];
-            if (argMap_.count(linkedKey) == 0) {
+            if (argMap_.count(linkedKey) == 0 && val.first != "") {
                 auto vl = val.first != "" ? std::vector<std::string>{ val.first } : std::vector<std::string>{};
                 argMap_.emplace(linkedKey, vl);
             }
@@ -110,7 +110,8 @@ void Cparser::print_help(const std::string usageExtra) {
     if (std::size(usageExtra)) std::cout << usageExtra << std::endl;
     std::cout << "Arguments:" << std::endl;
     auto it = std::max_element(std::begin(helpMap_), std::end(helpMap_), \
-        [this](auto& val1, auto& val2) { return std::size(correspondanceMap_[val1.first]) < std::size(correspondanceMap_[val2.first]); });
+        [this](auto& val1, auto& val2) {
+        return std::size(correspondanceMap_[val1.first]) < std::size(correspondanceMap_[val2.first]); });
     uint64_t maxSpaceSize = std::size(it->first);
     if (maxSpaceSize < std::size(helpMenu)) maxSpaceSize = std::size(helpMenu);
     maxSpaceSize += kSpaceOffset;

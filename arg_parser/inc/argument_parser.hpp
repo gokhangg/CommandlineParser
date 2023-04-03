@@ -143,7 +143,7 @@ class Cparser {
      * 
      * @param key Key to save.
      * @param in_arg Input argument to be used at CL.
-     * @param help Help to print if given.
+     * @param defVal Default value as string.
      */
     void save_key(const std::string key, const std::string in_arg, const std::string defVal);
 
